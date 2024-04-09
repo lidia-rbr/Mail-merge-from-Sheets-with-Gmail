@@ -1,0 +1,88 @@
+<style>
+  /* Basic form styling */
+  .form-container {
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  /* Style for form elements */
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  label {
+    display: block;
+    font: icon;
+    margin-bottom: 3px;
+    /* font-weight: bold; */
+  }
+
+  p {
+    display: block;
+    font: icon;
+    margin-bottom: 3px;
+    /* font-weight: bold; */
+  }
+
+  input {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  select {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    /* color: grey; */
+  }
+
+  /* Style for buttons */
+  button {
+    background-color: #1a73e8;
+    width: 100%;
+    color: #fff;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+
+  .output {
+    margin: 5px;
+  }
+
+  button:hover {
+    background-color: #124a94;
+  }
+
+  button:disabled {
+    background-color: #dddddd;
+  }
+
+  textarea {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font: icon;
+  }
+
+  /* Additional styles for better visual feedback */
+  input:focus,
+  button:focus {
+    outline: none;
+    box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+  }
+
+  progress {
+    width: 70%;
+    height: 33px;
+  }
+</style>
