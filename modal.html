@@ -1,0 +1,73 @@
+<script>
+  /**
+* Get user's inputs and launch campaign
+*/
+function getInfoAndStartCampaign() {
+  $("form").hide();
+  let campaignSelectedInfo = {
+    draftId : $("#drafts").val(),
+    recipientsCol : $("#recipients").val(),
+    ccCol : $("#cc").val(),
+    bccCol : $("#bcc").val()
+  }
+   $("#progressBar").show();
+   google.script.run.withSuccessHandler(sendEmails).withFailureHandler(showError).getSheetsInfo(campaignSelectedInfo)
+}
+
+/**
+ * After receiving data from server side, start campaign and display progress bar
+*/
+function sendEmails(sheetsDataObj) {
+  // recipientList
+  let sheetsDataObjKeys = Object.keys(sheetsDataObj);
+  console.log("sheetsDataObj ", sheetsDataObj);
+  for (let i = 0; i < sheetsDataObj.recipientList.length; i++) {
+    progress = (i + 1)/ sheetsDataObj.recipientList.length * 100;
+    // $('#campaignProgressBar').val(progress);
+    
+    let emailInfo = {
+      "draftId" : sheetsDataObj.draftId,
+      "recipient" : sheetsDataObj.recipientList[i],
+      "containsCc" : sheetsDataObj.containsCc,
+      "cc" : (sheetsDataObj.containsCc) ? sheetsDataObj.ccList[i] : "none",
+      "containsBcc" : sheetsDataObj.containsBcc,
+      "bcc" : (sheetsDataObj.containsCc) ? sheetsDataObj.ccList[i] : "none",
+      "rowIndexInSheets": i + 2
+    }
+    for (let j = 0; j < sheetsDataObjKeys.length; j++) {
+      if (sheetsDataObjKeys[j] != "draftId" && 
+          sheetsDataObjKeys[j] != "containsCc" &&
+          sheetsDataObjKeys[j] != "containsBcc" &&
+          sheetsDataObjKeys[j] != "containsBcc" &&
+          sheetsDataObjKeys[j] != "recipientList" &&
+          sheetsDataObjKeys[j] != "ccList" &&
+          sheetsDataObjKeys[j] != "bccList") {
+        emailInfo[sheetsDataObjKeys[j]] = sheetsDataObj[sheetsDataObjKeys[j]][i];
+      }
+    }
+    // Send email i
+    google.script.run.withSuccessHandler(function(progress) {
+      $('#campaignProgressBar').val(progress);
+      if (progress == 100) {
+          $("#progressBar").hide();
+          $("#messageDiv").show();
+          $("#messageText").text('Campaign finished!');
+        }
+      }).withFailureHandler(showError).sendEmail(emailInfo, progress);
+    console.log("emailInfo ", emailInfo);
+  }
+}
+
+function updateProgressBar(progress) {
+  console.log(progress)
+  $('#campaignProgressBar').val(progress)
+}
+
+
+function showError(message) {
+  $("#loader").hide();
+  $("#messageDiv").show();
+  $("#messageText").text('Error: ' + message);
+}
+
+</script>
