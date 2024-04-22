@@ -1,67 +1,72 @@
-<!DOCTYPE html>
-<html>
+<script>
+  /**
+* Get user's inputs and launch campaign
+*/
+function getInfoAndStartCampaign() {
+  $("form").hide();
+  let campaignSelectedInfo = {
+    draftId : $("#drafts").val(),
+    ccCol : $("#cc").val(),
+    bccCol : $("#bcc").val()
+  }
+   $("#progressBar").show();
+   console.log("campaignSelectedInfo",campaignSelectedInfo);
+   google.script.run.withSuccessHandler(sendEmails).withFailureHandler(showError).getSheetsInfo(campaignSelectedInfo)
+}
 
-<head>
-  <base target="_top">
-  <!-- Required meta tags -->
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"
-    integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous">
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.min.js"
-    integrity="sha384-IDwe1+LCz02ROU9k972gdyvl+AESN10+x7tBKgc9I5HFtuNz0wWnPclzo6p9vxnk" crossorigin="anonymous">
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"
-    integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous">
-  </script>
-  <?!=include("modal-js");?>
-  <script src="https://apis.google.com/js/api.js"></script>
-  <!-- Load the Google API Loader script. -->
-  <script src="https://apis.google.com/js/api.js?onload=onApiLoad"></script>
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js">
-  </script>
-</head>
+/**
+ * After receiving data from server side, start campaign and display progress bar
+*/
+function sendEmails(sheetsDataObj) {
+  // recipientList
+  let sheetsDataObjKeys = Object.keys(sheetsDataObj);
+  for (let i = 0; i < sheetsDataObj.recipientList.length; i++) {
+    progress = (i + 1)/ sheetsDataObj.recipientList.length * 100;
+    // $('#campaignProgressBar').val(progress);
+    
+    let emailInfo = {
+      "draftId" : sheetsDataObj.draftId,
+      "containsCc" : sheetsDataObj.containsCc,
+      "recipient" : sheetsDataObj.recipientList[i],
+      "cc" : (sheetsDataObj.containsCc) ? sheetsDataObj.ccList[i] : "none",
+      "containsBcc" : sheetsDataObj.containsBcc,
+      "bcc" : (sheetsDataObj.containsCc) ? sheetsDataObj.ccList[i] : "none",
+      "rowIndexInSheets": i + 2
+    }
+    for (let j = 0; j < sheetsDataObjKeys.length; j++) {
+      if (sheetsDataObjKeys[j] != "draftId" && 
+          sheetsDataObjKeys[j] != "containsCc" &&
+          sheetsDataObjKeys[j] != "containsBcc" &&
+          sheetsDataObjKeys[j] != "containsBcc" &&
+          sheetsDataObjKeys[j] != "recipientList" &&
+          sheetsDataObjKeys[j] != "ccList" &&
+          sheetsDataObjKeys[j] != "bccList") {
+        emailInfo[sheetsDataObjKeys[j]] = sheetsDataObj[sheetsDataObjKeys[j]][i];
+      }
+    }
 
-<body>
-  <form>
-    <div class="form-group">
-      <label for="drafts">Select the draft to use:</label>
-      <select id="drafts" class="form-control">
-        <?!=drafts;?>
-      </select>
-    </div>
-    <div class="form-group">
-      <label for="recipients">Select the recipients column:</label>
-      <select id="recipients" class="form-control">
-        <?!=recipientColumns;?>
-      </select>
-    </div>
-    <div class="form-group">
-      <label for="cc">Select the cc column or leave blank:</label>
-      <select id="cc" class="form-control">
-        <option value="blank" disabled selected >
-         
-        </option>
-        <?!=htmlColumns;?>
-      </select>
-    </div>
-    <div class="form-group">
-      <label for="bcc">Select the bcc column or leave blank:</label>
-      <select id="bcc" class="form-control">
-        <option value="blank" disabled selected >
-         
-        </option>
-        <?!=htmlColumns;?>
-      </select>
-    </div>
-    <button type="button" id="btn_record" class="btn btn-primary btn-block" onclick="getInfoAndStartCampaign()">Send <?!=nbOfRows?> email(s)</button>
-  </form>
-  <div id="progressBar" hidden>
+    google.script.run.withSuccessHandler(updateProgressBar).withFailureHandler(showError).sendEmail(emailInfo, progress);
+    
+    console.log("emailInfo ", emailInfo);
+  }
+}
 
-  </div>
-</body>
+function updateProgressBar(progress) {
+  console.log(progress);
+  if (progress == 100) {
+    $("#progressBar").hide();
+    $("#messageDiv").show();
+    $("#messageText").text('Campaign finished!');
+  } else {
+    setTimeout($('#campaignProgressBar').val(progress), 1000);
+  }
+}
 
-</html>
+
+function showError(message) {
+  $("#loader").hide();
+  $("#messageDiv").show();
+  $("#messageText").text('Error: ' + message);
+}
+
+</script>
